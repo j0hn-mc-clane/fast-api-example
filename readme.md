@@ -1,4 +1,4 @@
-## Mantra API
+## Example API
 *To be honest I would use PyCharm as an IDE for this project*
 ### Package Management - Poetry
 Why poetry you ask?
@@ -21,7 +21,7 @@ I still need to implement appropriate .env files for the environments
 #### Build and Compose
 Now, to get started:
 
-(if you have cloned the repository simply cd into mantra_v2)
+(if you have cloned the repository simply cd into repo)
 
 `````shell
 docker compose -f docker-compose-local.yml  build --no-cache --force-rm && docker compose -f docker-compose-local.yml up
