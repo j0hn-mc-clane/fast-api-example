@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------------------------------------------------#
 FROM python:3.9.6-slim as base-image
 
-LABEL maintainer="Joachim Cardoen <LX6097@engie.com>"
+LABEL maintainer="Joachim Cardoen"
 
 # If you are wondering: https://stackoverflow.com/questions/59812009/what-is-the-use-of-pythonunbuffered-in-docker-file
 # I had to look it up too :D
