@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  backend:
+    image: redis:latest
+    hostname: backend
+    container_name: "backend"
+
+  broker:
+    image: rabbitmq:3-management
+    hostname: broker
+    container_name: "broker"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: "api"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./example:/example
+    environment:
+      CELERY_BROKER_URL: "amqp://guest:guest@broker:5672"
+      CELERY_RESULT_BACKEND: "redis://backend:6379/0"
+    command: "poetry run uvicorn api:api --host 0.0.0.0 --reload"
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: "celery_worker"
+    links:
+      - backend
+      - broker
+    volumes:
+      - ./example:/example
+    environment:
+      CELERY_BROKER_URL: "amqp://guest:guest@broker:5672"
+      CELERY_RESULT_BACKEND: "redis://backend:6379/0"
+    depends_on:
+      - api
+      - backend
+      - broker
+    command: "poetry run watchmedo \
+    auto-restart \
+    --directory . \
+    --recursive \
+    --pattern '*.py' \
+    -- \
+    celery -A celery_worker.celery worker --loglevel=info"
+
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: "flower"
+    volumes:
+      - ./example:/example
+    links:
+      - backend
+      - broker
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: "amqp://guest:guest@broker:5672"
+      CELERY_RESULT_BACKEND: "redis://backend:6379/0"
+    command: "poetry run watchmedo \
+    auto-restart \
+    --directory . \
+    --recursive \
+    --pattern '*.py' \
+    -- \
+    celery -A celery_worker.celery flower --loglevel=info"
+    depends_on:
+      - api
+      - backend
+      - celery_worker
+      - broker
